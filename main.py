@@ -32,7 +32,8 @@ for repo, commit_hist in repositories.items():
 update_message = ''
 for repo, new_commits in new_updates.items():
     if len(new_commits) != 0:
-        update_message += '*{}*\n'.format(repo)
+        update_message += '*{}*\n{}\n'
+            .format(repo, 'https://github.com/'+repo)
         for commit in new_commits:
             try:
                 update_message += '  {}\n'.format(
