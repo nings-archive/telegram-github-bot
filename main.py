@@ -29,31 +29,32 @@ for repo, commit_hist in repositories.items():
             commit_hist.append(commit.sha)
 
 # construct the update message
-update_message = ''
+update_message = '''\
+<b>It's 1pm, a new puzzle is out!</b>\nhttps://adventofcode.com\n\n
+'''
 for repo, new_commits in new_updates.items():
     if len(new_commits) != 0:
-        update_message += '*{}*\n{}\n'
-            .format(repo, 'https://github.com/'+repo)
+        update_message += '<b>{}</b>\n{}\n'.format(
+            repo, 'https://github.com/'+repo
+        )
         for commit in new_commits:
             try:
                 update_message += '  {}\n'.format(
                     commit.message.split('\n')[0]
-                        .replace('*', '')
-                        .replace('_', '')
-                        .replace('`', '')
+                        .replace('>', '')  # lazy sanitise html #TODO regex
                 )
             except IndexError:
                 # ...for empty commit messages
                 # git gud pls have a commit message
                 pass
 
-# send message only if there has been updates (update_message is non-empty)
-if update_message != '':
-    telegram_api.send_message(
-        chat_id=aoc_chat_id,
-        text=update_message,
-        parse_mode=telegram.ParseMode.MARKDOWN
-    )
+# send message
+print(update_message)
+telegram_api.send_message(
+    chat_id=aoc_chat_id,
+    text=update_message,
+    parse_mode=telegram.ParseMode.HTML
+)
 
 # finally, update the commit_history json file
 with open(JSON_PATH, 'w') as file:
