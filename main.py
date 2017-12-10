@@ -7,7 +7,6 @@ from telegram import Bot
 from config import *
 
 # Initialisation for github api, telgeram api, and dict repositories
-JSON_PATH = './commit_history.json'
 with open(JSON_PATH, 'r') as file:
     repositories = json.loads(file.read())
 github_api = Github(login_or_token=GIT_TOKEN)
