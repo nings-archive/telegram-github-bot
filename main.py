@@ -10,8 +10,8 @@ from config import *
 JSON_PATH = './commit_history.json'
 with open(JSON_PATH, 'r') as file:
     repositories = json.loads(file.read())
-github_api = Github(login_or_token=github_api_token)
-telegram_api = Bot(token=telegram_api_token)
+github_api = Github(login_or_token=GIT_TOKEN)
+telegram_api = Bot(token=TELE_TOKEN)
 
 new_updates = {}
 
@@ -30,7 +30,7 @@ for repo, commit_hist in repositories.items():
 
 # construct the update message
 update_message = '''\
-<b>It's 1pm, a new puzzle is out!</b>\nhttps://adventofcode.com\n\n
+<b>It's 1pm, a new puzzle is out!</b>\nhttps://adventofcode.com\n
 '''
 for repo, new_commits in new_updates.items():
     if len(new_commits) != 0:
@@ -51,7 +51,7 @@ for repo, new_commits in new_updates.items():
 # send message
 print(update_message)
 telegram_api.send_message(
-    chat_id=aoc_chat_id,
+    chat_id=AOC_CHAT_ID,
     text=update_message,
     parse_mode=telegram.ParseMode.HTML
 )
