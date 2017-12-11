@@ -1,12 +1,15 @@
 #! /usr/bin/env python3
 ''' quick and dirty bot to facillitate usp does aoc '''
 
-import json, telegram
+import re, json
 from github import Github
+import telegram  # for ParseMode
 from telegram import Bot
 from config import *
 from config import \
     GIT_TOKEN, TELE_TOKEN, AOC_CHAT_ID, JSON_PATH, LEADERBOARD_CODE
+
+html_pattern = '<[^>]*>'
 
 # Initialisation for github api, telgeram api, and dict repositories
 with open(JSON_PATH, 'r') as file:
@@ -40,10 +43,11 @@ for repo, new_commits in new_updates.items():
         )
         for commit in new_commits:
             try:
-                update_message += '  {}\n'.format(
+                commit_message = re.sub(
+                    html_pattern, '',
                     commit.message.split('\n')[0]
-                        .replace('>', '')  # lazy sanitise html #TODO regex
                 )
+                update_message += '  {}\n'.format(commit_message)
             except IndexError:
                 # ...for empty commit messages
                 # git gud pls have a commit message
