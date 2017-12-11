@@ -5,6 +5,8 @@ import json, telegram
 from github import Github
 from telegram import Bot
 from config import *
+from config import \
+    GIT_TOKEN, TELE_TOKEN, AOC_CHAT_ID, JSON_PATH, LEADERBOARD_CODE
 
 # Initialisation for github api, telgeram api, and dict repositories
 with open(JSON_PATH, 'r') as file:
@@ -46,6 +48,10 @@ for repo, new_commits in new_updates.items():
                 # ...for empty commit messages
                 # git gud pls have a commit message
                 pass
+
+update_message += """\nJoin the our private leaderboard \
+(http://adventofcode.com/2017/leaderboard/private) with the code {} \
+to see everyone's progress so far!""".format(LEADERBOARD_CODE)
 
 # send message
 print(update_message)
