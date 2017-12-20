@@ -40,18 +40,19 @@ for repo, commit_hist in repositories.items():
 # construct the update message
 update_message = ''
 for repo, new_commits in new_updates.items():
-    has_new_commit = len(new_commit) != 0
+    has_new_commit = len(new_commits) != 0
     if has_new_commit:
         update_message += ('<b>{}</b>\n{}\n'
             .format(repo, 'https://github.com/'+repo))
         for commit in new_commits:
             try:
-                sub_update_message = '{}: {}'.format(
+                sub_update_message = '  {}: {}\n'.format(
                     commit.author.name,
                     commit.message.splitlines()[0])
                  # sanitise for ParseMode.HTML
                 sub_update_message = re.sub(
-                    html_pattern, sub_update_message)
+                    html_pattern, '', sub_update_message)
+                update_message += sub_update_message
             except IndexError:
                 ''' empty commit messages are empty strings,
                     splitlines() returns an empty list, and
@@ -60,12 +61,13 @@ for repo, new_commits in new_updates.items():
                     and hopefully never will '''
                 pass
 
+print(update_message)
 # send message
 has_update = not update_message is ''
 if has_update or not ONLY_SEND_UPDATES:
     telegram_api.send_message(
         chat_id=CHAT_ID, parse_mode=ParseMode.HTML,
-        text='{}\n{}\n{}'.format(UPDATE_HEADER, update_message, UPDATE_FOOTER)
+        text='{}\n\n{}\n\n{}'.format(UPDATE_HEADER, update_message, UPDATE_FOOTER)
     )
 
 # finally, update the commit_history json file
