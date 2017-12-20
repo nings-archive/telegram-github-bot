@@ -1,69 +1,72 @@
 #! /usr/bin/env python3
-''' quick and dirty bot to facillitate usp does aoc '''
 
 import re, json
 from github import Github
-import telegram  # for ParseMode
-from telegram import Bot
-from config import *
-from config import \
-    GIT_TOKEN, TELE_TOKEN, AOC_CHAT_ID, JSON_PATH, LEADERBOARD_CODE
+from telegram import Bot, ParseMode
+from config import (
+    GIT_TOKEN, TELE_TOKEN, CHAT_ID, JSON_PATH, 
+    UPDATE_HEADER, UPDATE_FOOTER, 
+    ONLY_SEND_UPDATES, INCLUDE_AUTHOR
+)
 
 html_pattern = '<[^>]*>'
 
-# Initialisation for github api, telgeram api, and dict repositories
+# Initialisation---repositories, github_api, telegram_api
 with open(JSON_PATH, 'r') as file:
     repositories = json.loads(file.read())
 github_api = Github(login_or_token=GIT_TOKEN)
 telegram_api = Bot(token=TELE_TOKEN)
 
+''' iterate through all commits polled from github_api, then
+    if the commit is new, i.e. not in commit_hist
+      (i)  add to new_updates 
+      (ii) add to commit_hist '''
 new_updates = {}
-
-# iterate through all commits polled from github_api, then
-# if the commit is new, i.e. not in commit_hist
-#   (i)  add to new_updates 
-#   (ii) add to commit_hist
 for repo, commit_hist in repositories.items():
-    print(repo)
-    all_commits = [ c.commit for c in github_api.get_repo(repo).get_commits() ] 
+    ''' .get_repo returns github.Repository.Repository
+        .get_commits() returns 
+            github.PaginatedList.PagniatedList<github.Commit.Commit>
+        We want github.GitCommit.GitCommit, which are attributes of
+            github.Commit.Commit with identifier 'commit', i.e.
+            github_api.get_repo(repo).get_commits()[n].commit '''
+    all_commits = [ 
+        c.commit for c in github_api.get_repo(repo).get_commits() ] 
     new_updates[repo] = []
     for commit in all_commits:
         if commit.sha not in commit_hist:
-            new_updates[repo].append(commit)
-            commit_hist.append(commit.sha)
+            new_updates[repo].append(commit)  # to append to update_message
+            commit_hist.append(commit.sha)  # to update the json file
 
 # construct the update message
-update_message = '''\
-<b>It's 1pm, a new puzzle is out!</b>\nhttps://adventofcode.com\n
-'''
+update_message = ''
 for repo, new_commits in new_updates.items():
-    if len(new_commits) != 0:
-        update_message += '<b>{}</b>\n{}\n'.format(
-            repo, 'https://github.com/'+repo
-        )
+    has_new_commit = len(new_commit) != 0
+    if has_new_commit:
+        update_message += ('<b>{}</b>\n{}\n'
+            .format(repo, 'https://github.com/'+repo))
         for commit in new_commits:
             try:
-                commit_message = re.sub(
-                    html_pattern, '',
-                    commit.message.split('\n')[0]
-                )
-                update_message += '  {}\n'.format(commit_message)
+                sub_update_message = '{}: {}'.format(
+                    commit.author.name,
+                    commit.message.splitlines()[0])
+                 # sanitise for ParseMode.HTML
+                sub_update_message = re.sub(
+                    html_pattern, sub_update_message)
             except IndexError:
-                # ...for empty commit messages
-                # git gud pls have a commit message
+                ''' empty commit messages are empty strings,
+                    splitlines() returns an empty list, and
+                    accessing with [0] gives IndexError
+                    ...this error has not been observed,
+                    and hopefully never will '''
                 pass
 
-update_message += """\nJoin the our private leaderboard \
-(http://adventofcode.com/2017/leaderboard/private) with the code {} \
-to see everyone's progress so far!""".format(LEADERBOARD_CODE)
-
 # send message
-print(update_message)
-telegram_api.send_message(
-    chat_id=AOC_CHAT_ID,
-    text=update_message,
-    parse_mode=telegram.ParseMode.HTML
-)
+has_update = not update_message is ''
+if has_update or not ONLY_SEND_UPDATES:
+    telegram_api.send_message(
+        chat_id=CHAT_ID, parse_mode=ParseMode.HTML,
+        text='{}\n{}\n{}'.format(UPDATE_HEADER, update_message, UPDATE_FOOTER)
+    )
 
 # finally, update the commit_history json file
 with open(JSON_PATH, 'w') as file:
