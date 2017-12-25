@@ -20,6 +20,6 @@ Then, set-up the config and commit_history files.
 You may want to use the [convenience script provided](get_chat_id.py) to retrieve the chat_id. Run the script, then send any command to the bot through any chat, to get that chat's id.
 
 ## Contributing
-If you have any features you'd like to add to the bot, feel free to create and maintain a fork or clone of this bot. This project is provided with no warranty, and you can do whatever you want.
+If you have any features you'd like to add to the bot, feel free to create and maintain a fork or clone of this bot. This project is provided with no warranty, and you can distribute as you like.
 
-However, please do not submit PRs for new features. Telegram-Github bot is meant to be a simple and minimal template with which you can built and customise upon. Rather, PRs should improve or optimise the current state of the project (see [issues](https://github.com/ningyuansg/telegram-github-bot/issues)).
+However, **please do not submit PRs for new features.** Telegram-Github bot is meant to be a simple and minimal template with which you can built and customise upon. Rather, PRs should improve or optimise the current state of the project (see [issues](https://github.com/ningyuansg/telegram-github-bot/issues)).
